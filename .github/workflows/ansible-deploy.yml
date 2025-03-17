@@ -1,0 +1,28 @@
+name: Deploy Ansible Playbook
+
+on:
+  push:
+    branches:
+      - main  # Roda o deploy quando um push é feito na branch "main"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Configurar SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H servidor-destino >> ~/.ssh/known_hosts
+
+      - name: Instalar Ansible
+        run: sudo apt update && sudo apt install -y ansible
+
+      - name: Executar Playbook Ansible
+        run: ansible-playbook -i inventory.yaml playbook.yml
+
